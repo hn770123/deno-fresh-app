@@ -1,0 +1,36 @@
+name: テストの実行
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.45.0-jammy
+
+    steps:
+      - name: コードのチェックアウト
+        uses: actions/checkout@v4
+
+      - name: Denoのセットアップ
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v2.x
+
+      - name: キャッシュの利用
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/deno
+            node_modules
+          key: ${{ runner.os }}-deno-${{ hashFiles('deno.lock') }}
+
+      - name: Playwrightブラウザのインストール
+        run: npx playwright install chromium
+
+      - name: テストの実行
+        run: deno task test
