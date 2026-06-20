@@ -16,6 +16,11 @@ jobs:
       - name: コードのチェックアウト
         uses: actions/checkout@v4
 
+      - name: システム依存関係のインストール
+        run: |
+          apt-get update
+          apt-get install -y unzip
+
       - name: Denoのセットアップ
         uses: denoland/setup-deno@v1
         with:
