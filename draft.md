@@ -13,6 +13,10 @@
 * Step4 レポート入力画面の実装
 * Step5 PDFのダウンロード機能の実装
 
+## テスト計画
+* denoのプロジェクトとして標準的なテストコードを作成してgithub actionsによる実行
+* Playwright(docker)を使用して github actionsによる自動テスト
+
 ## ユーザーテーブル
 * ユーザーID
 * ユーザー名
