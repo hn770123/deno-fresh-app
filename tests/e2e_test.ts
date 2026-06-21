@@ -18,49 +18,38 @@ Deno.test("ホームページのE2Eテスト", async (t) => {
   }).spawn();
 
   let serverStarted = false;
-  const reader = serverProcess.stdout.getReader();
-  const decoder = new TextDecoder();
 
   try {
-    // サーバーが起動してポート 8000 で待機するのを待つためのタイムアウト設定
-    const timeout = setTimeout(() => {
-      if (!serverStarted) {
-        console.error("サーバー起動タイムアウト");
-        try {
-          serverProcess.kill();
-        } catch (_) {
-          // すでに終了している場合は無視
+    // サーバーが起動してリクエストを受け付けられるようになるまでポーリング
+    const maxRetries = 30;
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        const res = await fetch("http://localhost:8000/login");
+        if (res.ok || res.status === 200) {
+          serverStarted = true;
+          break;
         }
+      } catch (_) {
+        // 接続できない場合は待機して再試行
       }
-    }, 30000);
-
-    let output = "";
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      const text = decoder.decode(value);
-      output += text;
-      // ログ出力（デバッグ用）
-      console.log(text);
-      // 起動完了メッセージを確認
-      if (output.includes("8000")) {
-        serverStarted = true;
-        clearTimeout(timeout);
-        break;
-      }
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
-
-    // 残りの標準出力をバックグラウンドでドレインする（バッファ詰まり防止）
-    (async () => {
-      while (true) {
-        const { done } = await reader.read();
-        if (done) break;
-      }
-    })();
 
     if (!serverStarted) {
-      throw new Error("サーバーの起動に失敗しました。");
+      throw new Error("サーバーの起動待機中にタイムアウトしました。");
     }
+
+    // 標準出力をバックグラウンドでドレインする（バッファ詰まり防止）
+    (async () => {
+      const reader = serverProcess.stdout.getReader();
+      const decoder = new TextDecoder();
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        // 必要に応じてログを出力
+        // console.log(decoder.decode(value));
+      }
+    })();
 
     // テスト用のユーザーデータを準備
     const testUsername = "testuser";
