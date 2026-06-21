@@ -21,6 +21,9 @@
   ],
   "imports": {
     "@/": "./",
+    "@db/sqlite": "jsr:@db/sqlite@^0.13.0",
+    "@std/crypto": "jsr:@std/crypto@^1.1.0",
+    "better-sqlite3": "npm:better-sqlite3@^12.11.1",
     "fresh": "jsr:@fresh/core@^2.3.3",
     "playwright": "npm:playwright@^1.61.0",
     "preact": "npm:preact@^10.29.1",
@@ -60,5 +63,6 @@
     "types": [
       "vite/client"
     ]
-  }
+  },
+  "allowScripts": ["npm:better-sqlite3"]
 }
