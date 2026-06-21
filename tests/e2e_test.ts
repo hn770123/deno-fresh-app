@@ -13,50 +13,25 @@ Deno.test("ホームページのE2Eテスト", async (t) => {
   // サーバーの起動 (Deno Fresh サーバーを本番モードで起動)
   const serverProcess = new Deno.Command(Deno.execPath(), {
     args: ["serve", "-A", "_fresh/server.js"],
-    stdout: "piped",
-    stderr: "inherit",
+    stdout: "null",
+    stderr: "null",
   }).spawn();
 
   let serverStarted = false;
-  const reader = serverProcess.stdout.getReader();
-  const decoder = new TextDecoder();
-
   try {
-    // サーバーが起動してポート 8000 で待機するのを待つためのタイムアウト設定
-    const timeout = setTimeout(() => {
-      if (!serverStarted) {
-        console.error("サーバー起動タイムアウト");
-        try {
-          serverProcess.kill();
-        } catch (_) {
-          // すでに終了している場合は無視
+    // サーバーが起動してポート 8000 で待機するのを待つためのポーリング
+    for (let i = 0; i < 30; i++) {
+      try {
+        const res = await fetch("http://localhost:8000/login");
+        if (res.ok) {
+          serverStarted = true;
+          break;
         }
+      } catch (_) {
+        // まだ起動していない場合は待機
       }
-    }, 30000);
-
-    let output = "";
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      const text = decoder.decode(value);
-      output += text;
-      // ログ出力（デバッグ用）
-      console.log(text);
-      // 起動完了メッセージを確認
-      if (output.includes("8000")) {
-        serverStarted = true;
-        clearTimeout(timeout);
-        break;
-      }
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
-
-    // 残りの標準出力をバックグラウンドでドレインする（バッファ詰まり防止）
-    (async () => {
-      while (true) {
-        const { done } = await reader.read();
-        if (done) break;
-      }
-    })();
 
     if (!serverStarted) {
       throw new Error("サーバーの起動に失敗しました。");

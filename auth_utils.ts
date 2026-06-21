@@ -26,7 +26,7 @@ export async function hashPassword(password: string, saltIn?: Uint8Array): Promi
   const derivedBits = await crypto.subtle.deriveBits(
     {
       name: "PBKDF2",
-      salt,
+      salt: salt.slice(),
       iterations: 100000,
       hash: "SHA-256",
     },
