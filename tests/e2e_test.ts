@@ -6,8 +6,6 @@
 
 import { chromium } from "playwright";
 import { assertEquals } from "jsr:@std/assert";
-import db from "../db.ts";
-import { hashPassword } from "../auth_utils.ts";
 
 Deno.test("ホームページのE2Eテスト", async (t) => {
   // サーバーの起動 (Deno Fresh サーバーを本番モードで起動)
@@ -37,19 +35,9 @@ Deno.test("ホームページのE2Eテスト", async (t) => {
       throw new Error("サーバーの起動に失敗しました。");
     }
 
-    // テスト用のユーザーデータを準備
+    // テスト用のユーザーデータ（db.tsで初期化済み）
     const testUsername = "testuser";
     const testPassword = "password123";
-    const user = db.prepare("SELECT id FROM users WHERE username = ?").get(testUsername);
-    if (!user) {
-      // ユーザーが存在しない場合は新規作成
-      const hashedPassword = await hashPassword(testPassword);
-      db.prepare("INSERT INTO users (username, password, email) VALUES (?, ?, ?)").run(
-        testUsername,
-        hashedPassword,
-        "test@example.com",
-      );
-    }
 
     // Playwrightによるテストシナリオの実行
     await t.step("ログインしてトップページが表示されること", async () => {

@@ -4,6 +4,7 @@
  */
 
 import { Database } from "@db/sqlite";
+import { hashPassword } from "./auth_utils.ts";
 
 /**
  * データベースインスタンスの作成
@@ -35,5 +36,29 @@ db.exec(`
     FOREIGN KEY (user_id) REFERENCES users (id)
   )
 `);
+
+/**
+ * テストユーザーの作成
+ * 開発およびテストの利便性のために、初期状態で 'testuser' を作成します。
+ */
+async function initializeTestUser() {
+  const testUsername = "testuser";
+  const testPassword = "password123";
+  const testEmail = "test@example.com";
+
+  const user = db.prepare("SELECT id FROM users WHERE username = ?").get(testUsername);
+  if (!user) {
+    const hashedPassword = await hashPassword(testPassword);
+    db.prepare("INSERT INTO users (username, password, email) VALUES (?, ?, ?)").run(
+      testUsername,
+      hashedPassword,
+      testEmail,
+    );
+    console.log(`Test user '${testUsername}' created.`);
+  }
+}
+
+// 非同期で初期化を実行（トップレベル await を使用）
+await initializeTestUser();
 
 export default db;
