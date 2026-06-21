@@ -40,5 +40,8 @@ jobs:
       - name: Playwrightブラウザのインストール
         run: npx playwright install chromium
 
+      - name: アプリケーションのビルド
+        run: deno task build
+
       - name: テストの実行
         run: deno task test
