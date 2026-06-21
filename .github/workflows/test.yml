@@ -22,7 +22,7 @@ jobs:
           apt-get install -y unzip
 
       - name: Denoのセットアップ
-        uses: denoland/setup-deno@v1
+        uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
 
@@ -33,6 +33,9 @@ jobs:
             ~/.cache/deno
             node_modules
           key: ${{ runner.os }}-deno-${{ hashFiles('deno.lock') }}
+
+      - name: 依存関係のインストール
+        run: deno install
 
       - name: Playwrightブラウザのインストール
         run: npx playwright install chromium
