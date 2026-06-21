@@ -1,39 +1,41 @@
 # テスト失敗の調査報告と対策
 
 ## 1. 調査結果
-`test-result.log` を確認したところ、GitHub Actions 上でのテスト実行時に以下の型エラーが発生し、テストが中断していることが判明しました。
+`test-result.log` および GitHub Actions の実行ログを確認したところ、以下の2つの問題によりテストが失敗していることが判明しました。
 
+### 問題A: 型エラーによるビルド失敗
 **エラー内容:**
 `TS2322 [ERROR]: Type 'Uint8Array<ArrayBufferLike>' is not assignable to type 'BufferSource'.`
 (場所: `auth_utils.ts:29:7`)
 
 **原因:**
-`auth_utils.ts` の `hashPassword` 関数内で、`crypto.getRandomValues` を使用して生成された `salt` (Uint8Array) が `crypto.subtle.deriveBits` に渡されています。
-Deno の一部の環境やバージョンにおいて、`crypto.getRandomValues` は `SharedArrayBuffer` をバックエンドに持つ `Uint8Array` を返すことがあり、これが `crypto.subtle.deriveBits` が期待する `BufferSource` (標準の `ArrayBuffer` を要求) と型レベルで不整合を起こしています。
+`auth_utils.ts` の `hashPassword` 関数内で、`crypto.getRandomValues` が `SharedArrayBuffer` をバックエンドに持つ `Uint8Array` を返すことがあり、これが `crypto.subtle.deriveBits` の期待する `BufferSource` (標準の `ArrayBuffer`) と型不整合を起こしていました。
+
+### 問題B: ランタイムエラー (GLIBC バージョン不足)
+**エラー内容:**
+`Error: Could not open library: /lib/x86_64-linux-gnu/libm.so.6: version 'GLIBC_2.38' not found`
+
+**原因:**
+GitHub Actions で使用していたコンテナイメージ `playwright:v1.45.0-jammy` (Ubuntu 22.04 ベース) に含まれる GLIBC のバージョンが古く、`@db/sqlite` が要求する最新の SQLite3 動的ライブラリが動作しませんでした。
 
 ## 2. 対策
-`salt` 変数を `crypto.subtle.deriveBits` に渡す際に、`.slice()` メソッドを適用します。
 
-```typescript
-const derivedBits = await crypto.subtle.deriveBits(
-  {
-    name: "PBKDF2",
-    salt: salt.slice(), // ここを修正
-    iterations: 100000,
-    hash: "SHA-256",
-  },
-  // ...
-);
-```
+### 対策A: 型エラーの解消
+`auth_utils.ts` において、`salt` 変数を渡す際に `.slice()` メソッドを適用します。これにより、常に標準の `ArrayBuffer` をバックエンドに持つ新しい `Uint8Array` が作成され、型エラーが解消されます。
 
-`Uint8Array.prototype.slice()` は、元の配列の内容をコピーした新しい `Uint8Array` を作成します。この新しい配列は常に標準の `ArrayBuffer` をバックエンドに持つため、型エラーが解消されます。
+### 対策B: コンテナイメージの更新
+`.github/workflows/test.yml` において、コンテナイメージを `v1.61.0-noble` (Ubuntu 24.04 ベース) に更新します。これにより、`GLIBC_2.38` 以上が提供され、SQLite3 ライブラリが正常に動作するようになります。
+
+### 対策C: E2Eテストの安定化
+`tests/e2e_test.ts` において、サーバーの起動待機処理を `stdout` の解析から HTTP ポーリング方式に変更しました。これにより、標準出力のバッファ詰まりによるハングアップやタイムアウトを防止できます。
 
 ## 3. メリットとデメリット
 
 ### メリット
-- **型安全性の確保**: TypeScript の型エラーを確実に解消し、CI パイプラインを正常化できます。
-- **環境互換性**: `SharedArrayBuffer` を利用する環境とそうでない環境の両方で、確実に動作するコードになります。
-- **実装の容易さ**: 既存のロジックを大幅に変更することなく、1行の修正で対応可能です。
+- **型安全性の確保**: TypeScript の型エラーを解消し、CI パイプラインを正常化できます。
+- **実行環境の近代化**: Ubuntu 24.04 ベースのイメージに移行することで、最新のライブラリ依存関係に対応できます。
+- **テストの信頼性向上**: ポーリング方式の採用により、E2E テストが環境の差異に左右されず安定して動作します。
 
 ### デメリット
-- **微小なオーバーヘッド**: 新しいメモリ領域の確保とデータのコピーが発生しますが、ソルトのサイズ（通常 16バイト程度）であればパフォーマンスへの影響は無視できるレベルです。
+- **イメージサイズの変化**: 新しい Playwright イメージを使用するため、初回実行時のダウンロード時間に僅かな変化がある可能性がありますが、GitHub Actions のキャッシュにより最小化されます。
+- **微小なオーバーヘッド**: `salt.slice()` によるメモリコピーが発生しますが、サイズが小さいためパフォーマンスへの影響は無視できます。
