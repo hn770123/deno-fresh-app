@@ -41,6 +41,15 @@ export const handler = define.middleware(async (ctx) => {
     return redirectToLogin();
   }
 
+  // ユーザー情報を取得してステートに保存
+  const user = db.prepare("SELECT id, username FROM users WHERE id = ?").get(session.user_id) as { id: number, username: string } | undefined;
+
+  if (!user) {
+    return redirectToLogin();
+  }
+
+  ctx.state.user = user;
+
   // 認証済み
   return await ctx.next();
 });
