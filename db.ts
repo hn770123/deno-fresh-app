@@ -36,4 +36,19 @@ db.exec(`
   )
 `);
 
+/**
+ * レポート情報を保存するための reports テーブルを作成します。
+ */
+db.exec(`
+  CREATE TABLE IF NOT EXISTS reports (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    summary TEXT,
+    details TEXT,
+    creator_id INTEGER NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (creator_id) REFERENCES users (id)
+  )
+`);
+
 export default db;
