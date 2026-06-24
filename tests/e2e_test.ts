@@ -1,15 +1,15 @@
 /**
  * E2Eテストモジュール
  * Playwrightを使用してアプリケーションの動作を確認します。
- * ログインフローとトップページの表示を確認します。
+ * ログインフロー、レポート作成、一覧表示の確認を行います。
  */
 
 import { chromium } from "playwright";
-import { assertEquals } from "jsr:@std/assert";
+import { assertEquals, assertStringIncludes } from "jsr:@std/assert";
 import db from "../db.ts";
 import { hashPassword } from "../auth_utils.ts";
 
-Deno.test("ホームページのE2Eテスト", async (t) => {
+Deno.test("検証WebアプリケーションのE2Eテスト", async (t) => {
   // サーバーの起動 (Deno Fresh サーバーを本番モードで起動)
   const serverProcess = new Deno.Command(Deno.execPath(), {
     args: ["serve", "-A", "_fresh/server.js"],
@@ -40,7 +40,7 @@ Deno.test("ホームページのE2Eテスト", async (t) => {
     // テスト用のユーザーデータを準備
     const testUsername = "testuser";
     const testPassword = "password123";
-    const user = db.prepare("SELECT id FROM users WHERE username = ?").get(testUsername);
+    const user = db.prepare("SELECT id FROM users WHERE username = ?").get(testUsername) as { id: number } | undefined;
     if (!user) {
       // ユーザーが存在しない場合は新規作成
       const hashedPassword = await hashPassword(testPassword);
@@ -51,10 +51,11 @@ Deno.test("ホームページのE2Eテスト", async (t) => {
       );
     }
 
-    // Playwrightによるテストシナリオの実行
+    const browser = await chromium.launch();
+    const context = await browser.newContext();
+
     await t.step("ログインしてトップページが表示されること", async () => {
-      const browser = await chromium.launch();
-      const page = await browser.newPage();
+      const page = await context.newPage();
       try {
         // ログインページへ移動
         await page.goto("http://localhost:8000/login");
@@ -68,14 +69,47 @@ Deno.test("ホームページのE2Eテスト", async (t) => {
 
         // ホームページ（トップ）への遷移を確認
         await page.waitForURL("http://localhost:8000/");
-        const content = await page.textContent("h1");
-        // 「Hello World」が表示されていることを検証
-        assertEquals(content, "Hello World");
+        const title = await page.textContent("h1");
+        assertEquals(title, "レポート一覧");
       } finally {
-        // ブラウザを閉じる
-        await browser.close();
+        await page.close();
       }
     });
+
+    await t.step("新規レポートが作成でき、一覧に表示されること", async () => {
+      const page = await context.newPage();
+      try {
+        // すでにログイン済みのはずなのでトップページへ
+        await page.goto("http://localhost:8000/");
+
+        // 新規作成ボタンをクリック
+        await page.click('a[href="/reports/new"]');
+        await page.waitForURL("http://localhost:8000/reports/new");
+
+        const reportTitle = `テストレポート_${Date.now()}`;
+        const reportSummary = "これはE2Eテストで作成された概要です。";
+        const reportDetails = "これはE2Eテストで作成された詳細内容です。";
+
+        // フォームに入力
+        await page.fill("#title", reportTitle);
+        await page.fill("#summary", reportSummary);
+        await page.fill("#details", reportDetails);
+
+        // 登録ボタンをクリック
+        await page.click('button[type="submit"]');
+
+        // トップページへ戻ることを確認
+        await page.waitForURL("http://localhost:8000/");
+
+        // 一覧に作成したレポートが含まれているか確認
+        const bodyContent = await page.textContent("body");
+        assertStringIncludes(bodyContent || "", reportTitle);
+      } finally {
+        await page.close();
+      }
+    });
+
+    await browser.close();
   } finally {
     // サーバープロセスを確実に停止させる
     try {
