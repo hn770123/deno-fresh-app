@@ -3,8 +3,9 @@
  * レポートの新規作成フォームの表示と登録処理を行います。
  */
 
-import { define } from "../../utils.ts";
-import db from "../../db.ts";
+import { define } from "../../utils/fresh.ts";
+import { reportService } from "../../services/db.ts";
+import Layout from "../../components/Layout.tsx";
 
 /**
  * レポート作成ページのハンドラ
@@ -21,7 +22,7 @@ export const handler = define.handlers({
     const creator_id = ctx.state.user?.id;
 
     if (!title) {
-      return ctx.render({ error: "タイトルは必須入力です。", values: { title, summary, details } });
+      return ctx.render({ error: "タイトルは必須入力です。", values: { title, summary, details } } as any);
     }
 
     if (!creator_id) {
@@ -29,9 +30,7 @@ export const handler = define.handlers({
     }
 
     // データベースにレポートを保存
-    db.prepare(
-      "INSERT INTO reports (title, summary, details, creator_id) VALUES (?, ?, ?, ?)"
-    ).run(title, summary, details, creator_id);
+    reportService.create(title, summary, details, creator_id);
 
     // 登録成功後はトップページへリダイレクト
     return new Response(null, {
@@ -44,17 +43,17 @@ export const handler = define.handlers({
 /**
  * レポート作成ページコンポーネント
  */
-export default define.page(function NewReportPage({ data }) {
-  const error = data?.error as string | undefined;
-  const values = data?.values || {};
+export default define.page(function NewReportPage({ data, state }) {
+  const error = (data as any)?.error as string | undefined;
+  const values = (data as any)?.values || {};
 
   return (
-    <div class="px-4 py-8 mx-auto max-w-2xl">
-      <head>
-        <title>新規レポート作成 - 検証Webアプリケーション</title>
-      </head>
+    <Layout title="新規レポート作成" state={state}>
       <div class="mb-8">
-        <a href="/" class="text-indigo-600 hover:text-indigo-800 flex items-center gap-1 mb-4">
+        <a
+          href="/"
+          class="text-indigo-600 hover:text-indigo-800 flex items-center gap-1 mb-4"
+        >
           <span>← レポート一覧に戻る</span>
         </a>
         <h1 class="text-3xl font-bold text-gray-900">新規レポート作成</h1>
@@ -158,6 +157,6 @@ export default define.page(function NewReportPage({ data }) {
           `}} />
         </form>
       </div>
-    </div>
+    </Layout>
   );
 });

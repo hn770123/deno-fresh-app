@@ -3,9 +3,9 @@
  * すべてのリクエストに対して認証チェックを行い、未ログインユーザーをログイン画面へ誘導します。
  */
 
-import { define } from "../utils.ts";
-import db from "../db.ts";
-import { getSessionId } from "../auth_utils.ts";
+import { define } from "../utils/fresh.ts";
+import { getSessionId } from "../utils/auth.ts";
+import { sessionService, userService } from "../services/db.ts";
 
 /**
  * 認証チェックミドルウェア
@@ -31,18 +31,18 @@ export const handler = define.middleware(async (ctx) => {
   }
 
   // データベースでセッションの有効性を確認
-  const session = db.prepare("SELECT user_id, expires_at FROM sessions WHERE id = ?").get(sessionId) as { user_id: number, expires_at: string } | undefined;
+  const session = sessionService.getById(sessionId);
 
   if (!session || new Date(session.expires_at) < new Date()) {
     // セッションが無効または期限切れ
     if (session) {
-      db.prepare("DELETE FROM sessions WHERE id = ?").run(sessionId);
+      sessionService.delete(sessionId);
     }
     return redirectToLogin();
   }
 
   // ユーザー情報を取得してステートに保存
-  const user = db.prepare("SELECT id, username FROM users WHERE id = ?").get(session.user_id) as { id: number, username: string } | undefined;
+  const user = userService.getById(session.user_id);
 
   if (!user) {
     return redirectToLogin();

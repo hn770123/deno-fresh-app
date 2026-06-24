@@ -4,7 +4,7 @@
  */
 
 import { App, staticFiles } from "fresh";
-import { type State } from "./utils.ts";
+import { type State } from "./utils/fresh.ts";
 
 // アプリケーションインスタンスの作成
 export const app = new App<State>();

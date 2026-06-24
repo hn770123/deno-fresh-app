@@ -1,5 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import db from "../db.ts";
+import db from "../services/db.ts";
 
 Deno.test("reportsテーブルの基本操作テスト", async (t) => {
   // テスト用ユーザーの作成（一意なユーザー名を使用）
