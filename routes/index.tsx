@@ -4,7 +4,7 @@
  */
 
 import { define } from "../utils.ts";
-import db from "../db.ts";
+import { AppDatabase } from "../db.ts";
 
 /**
  * ホームページコンポーネント
@@ -12,12 +12,7 @@ import db from "../db.ts";
  */
 export default define.page(function Home({ state }) {
   // データベースから全レポートを、作成者名を含めて取得
-  const reports = db.prepare(`
-    SELECT r.id, r.title, r.created_at, u.username as creator_name
-    FROM reports r
-    JOIN users u ON r.creator_id = u.id
-    ORDER BY r.created_at DESC
-  `).all() as { id: number; title: string; created_at: string; creator_name: string }[];
+  const reports = AppDatabase.getReportsWithUsers();
 
   return (
     <div class="px-4 py-8 mx-auto max-w-4xl">
@@ -29,7 +24,7 @@ export default define.page(function Home({ state }) {
         <div class="flex items-center gap-4">
           <span class="text-gray-600">ようこそ <span class="font-semibold">{state.user?.username}</span> さん</span>
           <a
-            href="/reports/new"
+            href="/reports_new"
             class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             新規作成

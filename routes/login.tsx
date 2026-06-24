@@ -3,9 +3,8 @@
  * ログインフォームの表示と認証処理を行います。
  */
 
-import { define } from "../utils.ts";
-import db from "../db.ts";
-import { verifyPassword, generateSessionId, setSessionCookie } from "../auth_utils.ts";
+import { define, verifyPassword, generateSessionId, setSessionCookie } from "../utils.ts";
+import { AppDatabase } from "../db.ts";
 
 /**
  * ログインページのハンドラ
@@ -24,7 +23,7 @@ export const handler = define.handlers({
     }
 
     // データベースからユーザーを取得
-    const user = db.prepare("SELECT id, password FROM users WHERE username = ?").get(username) as { id: number, password: string } | undefined;
+    const user = AppDatabase.getUserByUsername(username);
 
     if (!user || !(await verifyPassword(password, user.password))) {
       return ctx.render({ error: "ユーザー名またはパスワードが正しくありません。" });
@@ -35,11 +34,7 @@ export const handler = define.handlers({
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + 24); // 24時間有効
 
-    db.prepare("INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)").run(
-      sessionId,
-      user.id,
-      expiresAt.toISOString()
-    );
+    AppDatabase.createSession(sessionId, user.id, expiresAt);
 
     const headers = new Headers();
     headers.set("location", "/");

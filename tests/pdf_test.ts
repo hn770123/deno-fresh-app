@@ -3,7 +3,7 @@
  */
 
 import { assertEquals } from "jsr:@std/assert";
-import { generateReportPDF } from "../utils/pdf_generator.ts";
+import { generateReportPDF } from "../utils.ts";
 
 Deno.test("PDF生成ロジックのテスト", async () => {
   const data = {

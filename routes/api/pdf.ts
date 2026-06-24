@@ -3,8 +3,7 @@
  * フォームデータを受け取り、PDFファイルを生成して返します。
  */
 
-import { define } from "../../utils.ts";
-import { generateReportPDF } from "../../utils/pdf_generator.ts";
+import { define, generateReportPDF } from "../../utils.ts";
 
 /**
  * PDF生成APIハンドラ
