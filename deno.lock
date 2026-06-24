@@ -41,6 +41,7 @@
     "npm:@babel/core@^7.28.0": "7.29.7",
     "npm:@babel/preset-react@^7.27.1": "7.29.7_@babel+core@7.29.7",
     "npm:@opentelemetry/api@^1.9.0": "1.9.1",
+    "npm:@pdf-lib/fontkit@^1.1.1": "1.1.1",
     "npm:@preact/signals@^2.5.1": "2.9.2_preact@10.29.2",
     "npm:@preact/signals@^2.9.0": "2.9.2_preact@10.29.2",
     "npm:@prefresh/vite@^2.4.8": "2.4.12_preact@10.29.2_vite@7.3.5",
@@ -50,6 +51,7 @@
     "npm:esbuild-wasm@~0.25.11": "0.25.12",
     "npm:esbuild@0.25.7": "0.25.7",
     "npm:esbuild@~0.25.5": "0.25.12",
+    "npm:pdf-lib@^1.17.1": "1.17.1",
     "npm:playwright@*": "1.61.0",
     "npm:playwright@^1.61.0": "1.61.0",
     "npm:preact-render-to-string@^6.6.3": "6.7.0_preact@10.29.2",
@@ -818,6 +820,24 @@
     "@opentelemetry/api@1.9.1": {
       "integrity": "sha512-gLyJlPHPZYdAk1JENA9LeHejZe1Ti77/pTeFm/nMXmQH/HFZlcS/O2XJB+L8fkbrNSqhdtlvjBVjxwUYanNH5Q=="
     },
+    "@pdf-lib/fontkit@1.1.1": {
+      "integrity": "sha512-KjMd7grNapIWS/Dm0gvfHEilSyAmeLvrEGVcqLGi0VYebuqqzTbgF29efCx7tvx+IEbG3zQciRSWl3GkUSvjZg==",
+      "dependencies": [
+        "pako"
+      ]
+    },
+    "@pdf-lib/standard-fonts@1.0.0": {
+      "integrity": "sha512-hU30BK9IUN/su0Mn9VdlVKsWBS6GyhVfqjwl1FjZN4TxP6cCw0jP2w7V3Hf5uX7M0AZJ16vey9yE0ny7Sa59ZA==",
+      "dependencies": [
+        "pako"
+      ]
+    },
+    "@pdf-lib/upng@1.0.1": {
+      "integrity": "sha512-dQK2FUMQtowVP00mtIksrlZhdFXQZPC+taih1q4CvPZ5vqdxR/LKBaFg0oAfzd1GlHZXXSPdQfzQnt+ViGvEIQ==",
+      "dependencies": [
+        "pako"
+      ]
+    },
     "@preact/signals-core@1.14.3": {
       "integrity": "sha512-m0K3vnbSLC5rHs2ZVfeAMvBtT1zIyq4mxx5OlNncSgMj5Iz6W5Rn3kPrDxAC+iIKmiVe0lSl6U37t5ZkEWoVAw=="
     },
@@ -1401,6 +1421,18 @@
     "node-releases@2.0.48": {
       "integrity": "sha512-1uz8041X6LoI6ZSdZacM9lVY28vuzDlSKitnpbSNK0RfKoIJkX29NBPVEFXhnuSuEOA9Ww0xnPJ+ILWbGAv8DA=="
     },
+    "pako@1.0.11": {
+      "integrity": "sha512-4hLB8Py4zZce5s4yd9XzopqwVv/yGNhV1Bl8NTmCq1763HeK2+EwVTv+leGeL13Dnh2wfbqowVPXCIO0z4taYw=="
+    },
+    "pdf-lib@1.17.1": {
+      "integrity": "sha512-V/mpyJAoTsN4cnP31vc0wfNA1+p20evqqnap0KLoRUN0Yk/p3wN52DOEsL4oBFcLdb76hlpKPtzJIgo67j/XLw==",
+      "dependencies": [
+        "@pdf-lib/standard-fonts",
+        "@pdf-lib/upng",
+        "pako",
+        "tslib"
+      ]
+    },
     "picocolors@1.1.1": {
       "integrity": "sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA=="
     },
@@ -1496,6 +1528,9 @@
         "picomatch@4.0.4"
       ]
     },
+    "tslib@1.14.1": {
+      "integrity": "sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg=="
+    },
     "update-browserslist-db@1.2.3_browserslist@4.28.2": {
       "integrity": "sha512-Js0m9cx+qOgDxo0eMiFGEueWztz+d4+M3rGlmKPT+T4IS/jP4ylw3Nwpu6cpTTP8R1MAC1kF4VbdLt3ARf209w==",
       "dependencies": [
@@ -1564,9 +1599,11 @@
       "jsr:@fresh/core@^2.3.3",
       "jsr:@fresh/plugin-vite@^1.1.2",
       "jsr:@std/crypto@^1.1.0",
+      "npm:@pdf-lib/fontkit@^1.1.1",
       "npm:@preact/signals@^2.9.0",
       "npm:@tailwindcss/vite@^4.1.12",
       "npm:@types/babel__core@^7.20.5",
+      "npm:pdf-lib@^1.17.1",
       "npm:playwright@^1.61.0",
       "npm:preact-render-to-string@^6.7.0",
       "npm:preact@^10.29.1",

@@ -115,14 +115,47 @@ export default define.page(function NewReportPage({ data }) {
             </div>
           </div>
 
-          <div class="flex justify-end">
+          <div class="flex justify-end gap-3">
+            <button
+              type="button"
+              id="download-pdf"
+              class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              PDFダウンロード
+            </button>
             <button
               type="submit"
-              class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
               登録する
             </button>
           </div>
+
+          <script dangerouslySetInnerHTML={{ __html: `
+            document.getElementById('download-pdf').addEventListener('click', async () => {
+              const form = document.querySelector('form');
+              const formData = new FormData(form);
+
+              const response = await fetch('/api/pdf', {
+                method: 'POST',
+                body: formData
+              });
+
+              if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = \`report_\${Date.now()}.pdf\`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+              } else {
+                alert('PDFの作成に失敗しました。');
+              }
+            });
+          `}} />
         </form>
       </div>
     </div>
