@@ -6,8 +6,8 @@
 
 import { chromium } from "playwright";
 import { assertEquals, assertStringIncludes } from "jsr:@std/assert";
-import db from "../db.ts";
-import { hashPassword } from "../auth_utils.ts";
+import db from "../services/db.ts";
+import { hashPassword } from "../utils/auth.ts";
 
 Deno.test("検証WebアプリケーションのE2Eテスト", async (t) => {
   // サーバーの起動 (Deno Fresh サーバーを本番モードで起動)

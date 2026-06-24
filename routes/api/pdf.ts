@@ -3,8 +3,8 @@
  * フォームデータを受け取り、PDFファイルを生成して返します。
  */
 
-import { define } from "../../utils.ts";
-import { generateReportPDF } from "../../utils/pdf_generator.ts";
+import { define } from "../../utils/fresh.ts";
+import { generateReportPDF } from "../../services/pdf.ts";
 
 /**
  * PDF生成APIハンドラ
@@ -32,7 +32,7 @@ export const handler = define.handlers({
       });
 
       // PDFファイルをレスポンスとして返す
-      return new Response(pdfBytes, {
+      return new Response(pdfBytes as BodyInit, {
         headers: {
           "Content-Type": "application/pdf",
           "Content-Disposition": `attachment; filename="report_${Date.now()}.pdf"`,

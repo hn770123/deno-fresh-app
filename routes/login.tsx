@@ -3,9 +3,10 @@
  * ログインフォームの表示と認証処理を行います。
  */
 
-import { define } from "../utils.ts";
-import db from "../db.ts";
-import { verifyPassword, generateSessionId, setSessionCookie } from "../auth_utils.ts";
+import { define } from "../utils/fresh.ts";
+import { verifyPassword, generateSessionId, setSessionCookie } from "../utils/auth.ts";
+import { userService, sessionService } from "../services/db.ts";
+import { Head } from "fresh/runtime";
 
 /**
  * ログインページのハンドラ
@@ -24,9 +25,9 @@ export const handler = define.handlers({
     }
 
     // データベースからユーザーを取得
-    const user = db.prepare("SELECT id, password FROM users WHERE username = ?").get(username) as { id: number, password: string } | undefined;
+    const user = userService.getByUsername(username);
 
-    if (!user || !(await verifyPassword(password, user.password))) {
+    if (!user || !user.password || !(await verifyPassword(password, user.password))) {
       return ctx.render({ error: "ユーザー名またはパスワードが正しくありません。" });
     }
 
@@ -35,11 +36,7 @@ export const handler = define.handlers({
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + 24); // 24時間有効
 
-    db.prepare("INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)").run(
-      sessionId,
-      user.id,
-      expiresAt.toISOString()
-    );
+    sessionService.create(sessionId, user.id, expiresAt);
 
     const headers = new Headers();
     headers.set("location", "/");
@@ -59,12 +56,11 @@ export default define.page(function LoginPage({ data }) {
   const error = data?.error as string | undefined;
 
   return (
-    <>
-      <head>
-        <title>ログイン - 検証Webアプリケーション</title>
-      </head>
-      <div class="px-4 py-8 mx-auto min-h-screen flex flex-col items-center justify-center bg-gray-50">
-        <div class="max-w-sm w-full space-y-8 bg-white p-10 rounded-xl shadow-md">
+    <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <Head>
+        <title>ログイン - 検証Webアプリ</title>
+      </Head>
+      <div class="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-md">
           <div>
             <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
               アカウントにログイン
@@ -112,6 +108,5 @@ export default define.page(function LoginPage({ data }) {
           </form>
         </div>
       </div>
-    </>
   );
 });
