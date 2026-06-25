@@ -3,8 +3,8 @@
  * レポートの新規作成フォームの表示と登録処理を行います。
  */
 
-import { define } from "../../utils.ts";
-import db from "../../db.ts";
+import { define } from "../utils.ts";
+import { AppDatabase } from "../db.ts";
 
 /**
  * レポート作成ページのハンドラ
@@ -29,9 +29,7 @@ export const handler = define.handlers({
     }
 
     // データベースにレポートを保存
-    db.prepare(
-      "INSERT INTO reports (title, summary, details, creator_id) VALUES (?, ?, ?, ?)"
-    ).run(title, summary, details, creator_id);
+    AppDatabase.createReport(title, summary, details, creator_id);
 
     // 登録成功後はトップページへリダイレクト
     return new Response(null, {

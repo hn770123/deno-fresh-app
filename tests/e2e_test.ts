@@ -6,8 +6,8 @@
 
 import { chromium } from "playwright";
 import { assertEquals, assertStringIncludes } from "jsr:@std/assert";
-import db from "../db.ts";
-import { hashPassword } from "../auth_utils.ts";
+import db, { AppDatabase } from "../db.ts";
+import { hashPassword } from "../utils.ts";
 
 Deno.test("検証WebアプリケーションのE2Eテスト", async (t) => {
   // サーバーの起動 (Deno Fresh サーバーを本番モードで起動)
@@ -40,7 +40,7 @@ Deno.test("検証WebアプリケーションのE2Eテスト", async (t) => {
     // テスト用のユーザーデータを準備
     const testUsername = "testuser";
     const testPassword = "password123";
-    const user = db.prepare("SELECT id FROM users WHERE username = ?").get(testUsername) as { id: number } | undefined;
+    const user = AppDatabase.getUserByUsername(testUsername);
     if (!user) {
       // ユーザーが存在しない場合は新規作成
       const hashedPassword = await hashPassword(testPassword);
@@ -83,8 +83,8 @@ Deno.test("検証WebアプリケーションのE2Eテスト", async (t) => {
         await page.goto("http://localhost:8000/");
 
         // 新規作成ボタンをクリック
-        await page.click('a[href="/reports/new"]');
-        await page.waitForURL("http://localhost:8000/reports/new");
+        await page.click('a[href="/reports_new"]');
+        await page.waitForURL("http://localhost:8000/reports_new");
 
         const reportTitle = `テストレポート_${Date.now()}`;
         const reportSummary = "これはE2Eテストで作成された概要です。";
