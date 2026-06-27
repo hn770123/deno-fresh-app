@@ -1,0 +1,11 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - /app/node_modules # 開発時にローカルの node_modules と競合しないように
+      - .:/data # SQLiteの永続化が必要な場合は、db.ts のパスを /data/app.db に変更することを推奨
+    environment:
+      - DENO_ENV=production
