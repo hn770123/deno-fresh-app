@@ -1,0 +1,16 @@
+{
+	"name": "Deno 2 Fresh App",
+	"build": {
+		"dockerfile": "../Dockerfile",
+		"context": ".."
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"denoland.vscode-deno"
+			]
+		}
+	},
+	"forwardPorts": [8000, 5173],
+	"remoteUser": "root"
+}
